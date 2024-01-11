@@ -94,7 +94,6 @@
             opcode: "switchValue",
             text: "switch value",
             blockType: Scratch.BlockType.REPORTER,
-            disableMonitor: true
           },
           "---",
           {
@@ -317,14 +316,14 @@
     }
 
     switchValue(args, util) {
-      if (this.isInPalette(util.thread)) return '';
+      if (this.isInPalette(util.thread)) return;
       const outerBlock = this.getOuterCtillOpcode(
         util.target,
         util.thread.peekStack(),
         "lmsSpAsMoreControl_switch"
       );
       if (outerBlock == null) return "";
-      return outerBlock.switchValue ?? '';
+      return outerBlock.switchValue;
     }
 
     elseIf(args, util) {
