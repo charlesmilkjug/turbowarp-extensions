@@ -3,7 +3,7 @@
 // Description: More conditional and loop statements.
 // By: LilyMakesThings <https://scratch.mit.edu/users/LilyMakesThings/>
 // By: Ashime <https://scratch.mit.edu/users/0znzw/>
-// By: SharkPool <https://scratch.mit.edu/users/DemonX5/>
+// By: SharkPool <https://scratch.mit.edu/users/0znzw/>
 
 (function (Scratch) {
   "use strict";
@@ -192,15 +192,6 @@
               },
             },
           },
-          {
-            opcode: "spayedCondition",
-            blockType: Scratch.BlockType.LOOP,
-            text: ["if [CON1] start loop", "repeat until [CON2]" + " "],
-            arguments: {
-              CON1: { type: Scratch.ArgumentType.BOOLEAN },
-              CON2: { type: Scratch.ArgumentType.BOOLEAN },
-            },
-          },
           "---",
           {
             opcode: "stopTarget",
@@ -226,8 +217,13 @@
           },
           "---",
           {
-            opcode: "warp",
-            blockType: Scratch.BlockType.CONDITIONAL
+            opcode: "spayedCondition",
+            blockType: Scratch.BlockType.LOOP,
+            text: ["if [CON1] start loop", "repeat until [CON2]" + " "],
+            arguments: {
+              CON1: { type: Scratch.ArgumentType.BOOLEAN },
+              CON2: { type: Scratch.ArgumentType.BOOLEAN },
+            },
           },
           {
             opcode: "runInSprite",
@@ -263,7 +259,7 @@
 
     switch(args, util) {
       if (this.isInPalette(util.thread)) return;
-      const switchValue = Cast.toString(args.SWITCH);
+      const switchValue = Scratch.Cast.toString(args.SWITCH);
       const block = util.thread.peekStack();
       const self = this.getBlockByID(util.target, block);
       self.switchValue = switchValue;
@@ -275,7 +271,7 @@
 
     case(args, util) {
       if (this.isInPalette(util.thread)) return;
-      const caseValue = Cast.toString(args.CASE);
+      const caseValue = Scratch.Cast.toString(args.CASE);
       const outerBlock = this.getOuterCtillOpcode(
         util.target,
         util.thread.peekStack(),
@@ -309,7 +305,7 @@
     runCase(args, util) {
       if (this.isInPalette(util.thread)) return;
       const block = util.thread.peekStack();
-      const caseValue = Cast.toString(args.CASE);
+      const caseValue = Scratch.Cast.toString(args.CASE);
       let outerBlock = this.getOuterCtillOpcode(
         util.target,
         block,
@@ -332,8 +328,8 @@
     }
 
     elseIf(args, util) {
-      const condition1 = Cast.toBoolean(args.CONDITION1);
-      const condition2 = Cast.toBoolean(args.CONDITION2);
+      const condition1 = Scratch.Cast.toBoolean(args.CONDITION1);
+      const condition2 = Scratch.Cast.toBoolean(args.CONDITION2);
       if (condition1) {
         return 1;
       } else if (condition2) {
@@ -342,8 +338,8 @@
     }
 
     elseIfElse(args, util) {
-      const condition1 = Cast.toBoolean(args.CONDITION1);
-      const condition2 = Cast.toBoolean(args.CONDITION2);
+      const condition1 = Scratch.Cast.toBoolean(args.CONDITION1);
+      const condition2 = Scratch.Cast.toBoolean(args.CONDITION2);
       if (condition1) {
         return 1;
       } else if (condition2) {
@@ -354,7 +350,7 @@
     }
 
     waitDuration(args, util) {
-      const type = Cast.toString(args.TYPE);
+      const type = Scratch.Cast.toString(args.TYPE);
       if (type == "frames") {
         const duration = Math.round(Cast.toNumber(args.DURATION));
         if (typeof util.stackFrame.loopCounter === "undefined") {
@@ -378,7 +374,7 @@
     }
 
     waitDurationOrUntil(args, util) {
-      const type = Cast.toString(args.TYPE);
+      const type = Scratch.Cast.toString(args.TYPE);
       if (type == "frames") {
         const duration = Math.round(Cast.toNumber(args.DURATION));
         if (typeof util.stackFrame.loopCounter === "undefined") {
@@ -424,6 +420,21 @@
       }
     }
 
+    stopTarget(args, util) {
+      const targetName = Scratch.Cast.toString(args.TARGET);
+      runtime.stopForTarget(this._getTargetFromMenu(targetName));
+    }
+
+    stopExceptTarget(args, util) {
+      const targets = runtime.targets;
+      const targetName = Scratch.Cast.toString(args.TARGET);
+      const exception = this._getTargetFromMenu(targetName);
+
+      for (const target of targets) {
+        if (target !== exception) runtime.stopForTarget(target);
+      }
+    }
+
     spayedCondition(args, util) {
       if (typeof util.stackFrame.index === "undefined")
         util.stackFrame.index = 0;
@@ -438,32 +449,6 @@
           return false;
         }
       }
-    }
-
-    stopTarget(args, util) {
-      const targetName = Cast.toString(args.TARGET);
-      runtime.stopForTarget(this._getTargetFromMenu(targetName, util));
-    }
-
-    stopExceptTarget(args, util) {
-      const targets = runtime.targets;
-      const targetName = Cast.toString(args.TARGET);
-      const exception = this._getTargetFromMenu(targetName, util);
-
-      for (const target of targets) {
-        if (target !== exception) runtime.stopForTarget(target);
-      }
-    }
-
-    warp(args, util) {
-      if (runtime.compilerOptions.enabled) {
-        //I'd really like for this not to be the case, but I don't think that's going to happen.
-        vm.runtime.emitCompileError(util.target, "The Warp block only works when the compiler is disabled.");
-        return 1;
-      }
-      util.thread.peekStackFrame().warpMode = false;
-      util.startBranch(1, false);
-      util.thread.peekStackFrame().warpMode = true;
     }
 
     async runInSprite(args, util) {
@@ -511,7 +496,7 @@
       if (stage) spriteNames.push({ text: "Stage", value: "_stage_" });
       if (myself) spriteNames.push({ text: "myself", value: "_myself_" });
 
-      const targets = runtime.targets;
+      const targets = Scratch.vm.runtime.targets;
       for (let index = 1; index < targets.length; index++) {
         const targetName = targets[index].getName();
         spriteNames.push({
@@ -582,7 +567,7 @@
     }
 
     _getTargetFromMenu(targetName, util) {
-      let target = runtime.getSpriteTargetByName(targetName);
+      let target = Scratch.vm.runtime.getSpriteTargetByName(targetName);
       if (targetName === "_myself_") target = util.target;
       if (targetName === "_stage_") target = runtime.getTargetForStage();
       return target;
